@@ -258,51 +258,8 @@ class NERModel(LanguageModel):
     ### END YOUR CODE
     return train_op
 
-  def __init__(self, config):
-    """Constructs the network using the helper functions defined above."""
-    self.config = config
-    self.load_data(debug=False)
-    self.add_placeholders()
-    window = self.add_embedding()
-    y = self.add_model(window)
-
-    self.loss = self.add_loss_op(y)
-    self.predictions = tf.nn.softmax(y)
-    one_hot_prediction = tf.argmax(self.predictions, 1)
-    correct_prediction = tf.equal(
-        tf.argmax(self.labels_placeholder, 1), one_hot_prediction)
-    self.correct_predictions = tf.reduce_sum(tf.cast(correct_prediction, 'int32'))
-    self.train_op = self.add_training_op(self.loss)
-
-  def run_epoch(self, session, input_data, input_labels,
-                shuffle=True, verbose=True):
-    orig_X, orig_y = input_data, input_labels
-    dp = self.config.dropout
-    # We're interested in keeping track of the loss and accuracy during training
-    total_loss = []
-    total_correct_examples = 0
-    total_processed_examples = 0
-    total_steps = len(orig_X) / self.config.batch_size
-    for step, (x, y) in enumerate(
-      data_iterator(orig_X, orig_y, batch_size=self.config.batch_size,
-                   label_size=self.config.label_size, shuffle=shuffle)):
-      feed = self.create_feed_dict(input_batch=x, dropout=dp, label_batch=y)
-      loss, total_correct, _ = session.run(
-          [self.loss, self.correct_predictions, self.train_op],
-          feed_dict=feed)
-      total_processed_examples += len(x)
-      total_correct_examples += total_correct
-      total_loss.append(loss)
-      ##
-      if verbose and step % verbose == 0:
-        sys.stdout.write('\r{} / {} : loss = {}'.format(
-            step, total_steps, np.mean(total_loss)))
-        sys.stdout.flush()
-    if verbose:
-        sys.stdout.write('\r')
-        sys.stdout.flush()
-    return np.mean(total_loss), total_correct_examples / float(total_processed_examples)
-
+ 
+ 
   def predict(self, session, X, y=None):
     """Make predictions from the provided model."""
     # If y is given, the loss is also calculated
